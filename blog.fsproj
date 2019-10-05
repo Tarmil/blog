@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <WebSharperProject>Html</WebSharperProject>
+    <WebSharperHtmlDirectory>$(MSBuildThisFileDirectory)bin/html</WebSharperHtmlDirectory>
+    <StartAction>Program</StartAction>
+    <StartProgram>dotnet</StartProgram>
+    <StartArguments>serve -d "$(WebSharperHtmlDirectory)"</StartArguments>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Paths.fs" />
+    <Compile Include="Page.fs" />
+    <Compile Include="Main.fs" />
+    <Content Include="CNAME" />
+    <Content Include=".nojekyll" />
+    <Content Include="scss/**/*.*" />
+    <Content Include="css/**/*.*" />
+    <Content Include="pages/**/*.*" />
+    <Content Include="articles/**/*.*" />
+    <Content Include="layout/**/*.*" />
+    <Content Include="assets/**/*.*" />
+    <None Include="extra.files" />
+    <None Include="wsconfig.json" />
+    <None Include="package.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Text.RegexProvider" Version="2.1.0" />
+    <PackageReference Include="Markdig" Version="0.17.1" />
+    <PackageReference Include="SharpYaml" Version="1.6.5" />
+    <PackageReference Include="WebSharper" Version="4.5.19.349" />
+    <PackageReference Include="WebSharper.FSharp" Version="4.5.19.349" />
+    <PackageReference Include="WebSharper.UI" Version="4.5.13.180" />
+  </ItemGroup>
+
+  <Target Name="CompileScss" BeforeTargets="BeforeBuild">
+    <Exec Command="npm install" Condition="!Exists('$(MSBuildThisFileDirectory)node_modules')" />
+    <Exec Command="npm run build" />
+  </Target>
+
+</Project>

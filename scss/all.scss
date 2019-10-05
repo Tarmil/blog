@@ -1,0 +1,43 @@
+$family-primary: Roboto, "Segoe UI", Helvetica, Arial, sans-serif;
+$family-secondary: Oswald, "Segoe UI", Helvetica, Arial, sans-serif;
+
+@import "bulma/sass/utilities/_all.sass";
+@import "bulma/sass/base/_all.sass";
+@import "bulma/sass/components/level.sass";
+@import "bulma/sass/components/menu.sass";
+@import "bulma/sass/elements/container.sass";
+@import "bulma/sass/elements/content.sass";
+@import "bulma/sass/elements/title.sass";
+@import "bulma/sass/grid/columns.sass";
+@import "bulma/sass/layout/footer.sass";
+@import "bulma/sass/layout/hero.sass";
+@import "bulma/sass/layout/section.sass";
+@import "https://fonts.googleapis.com/css?family=Oswald|Roboto&display=swap";
+
+.level.article-prev-next {
+  .level-left, .level-right {
+    max-width: 50%;
+
+    .level-item {
+      max-width: 100%;
+    }
+  }
+
+  .level-right {
+    text-align: right;
+  }
+}
+
+.hero {
+  background-image: url('../assets/banner.jpg');
+  background-position-x: center;
+
+  .title {
+    font-size: 2.5rem;
+    font-family: $family-secondary;
+  }
+
+  .subtitle {
+    font-size: 1.5rem;
+  }
+}
