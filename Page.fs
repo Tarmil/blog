@@ -27,6 +27,8 @@ type Metadata =
         title: string
         subtitle: string
         author: string
+        tags: string[]
+        overrideTags: bool
     }
 
 type Page =
@@ -55,13 +57,38 @@ let parseArticleUrl path =
     else
         failwithf "Invalid article filename: %s (should be YYMMDD-slug.md)" filename
 
-let defaultMetadata = File.ReadAllText(Paths.layout + "/default.yml")
+let emptyMetadata =
+    {
+        title = ""
+        subtitle = ""
+        author = ""
+        tags = [||]
+        overrideTags = false
+    }
 
 let yamlSerializer = SharpYaml.Serialization.Serializer()
 
-let parseMetadata (yaml: string) =
-    (defaultMetadata + "\n" + yaml)
+let mergeMetadata (m1: Metadata) (m2: Metadata) =
+    {
+        title = if isNull m2.title then m1.title else m2.title
+        subtitle = if isNull m2.subtitle then m1.subtitle else m2.subtitle
+        author = if isNull m2.author then m1.author else m2.author
+        tags =
+            let m2tags = if isNull m2.tags then [||] else m2.tags
+            if m2.overrideTags then m2tags else
+            Array.append m1.tags m2tags |> Array.distinct
+        overrideTags = m2.overrideTags
+    }
+
+let defaultMetadata =
+    File.ReadAllText(Paths.layout + "/default.yml")
     |> yamlSerializer.Deserialize<Metadata>
+    |> mergeMetadata emptyMetadata // remove the nulls from default serializer
+
+let parseMetadata (yaml: string) =
+    yaml
+    |> yamlSerializer.Deserialize<Metadata>
+    |> mergeMetadata defaultMetadata
 
 let runMarkdown source =
     let pipeline =

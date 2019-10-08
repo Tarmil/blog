@@ -96,6 +96,10 @@ module Layout =
                 byline
                 Doc.WebControl (new Require<Css>())
             ])
+            .Tags([
+                for tag in page.metadata.tags do
+                    MainTemplate.Tag().Name(tag).Doc()
+            ])
             .PrevUrl(prevUrl)
             .PrevTitle(prevTitle)
             .NextUrl(nextUrl)
