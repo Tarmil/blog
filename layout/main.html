@@ -10,8 +10,10 @@
     <header class="hero is-medium">
       <div class="hero-body">
         <div class="container">
-          <h1 class="title">${Title}</h1>
-          <h2 class="subtitle">${Subtitle}</h2>
+          <a href="/">
+            <h1 class="title">${Title}</h1>
+            <h2 class="subtitle">${Subtitle}</h2>
+          </a>
         </div>
       </div>
     </header>
@@ -22,6 +24,11 @@
             <div class="content">
               <div ws-replace="Body">
                 <p ws-template="Byline"><small><em>By ${Author} on ${Date}</em></small></p>
+                <article ws-template="ArticleInList" class="section">
+                  <h1><a href="${Url}">${Title}</a></h1>
+                  <div ws-replace="Body"></div>
+                  <p class="are-tags" ws-hole="Tags"></p>
+                </article>
               </div>
               <p class="are-tags" ws-hole="Tags">
                 <span ws-template="Tag" class="tag">${Name}</span>
@@ -43,7 +50,7 @@
           <div class="column is-one-quarter">
             <aside class="menu">
               <ul class="menu-list">
-                <li><a href="/">About</a></li>
+                <li><a href="/about">About</a></li>
               </ul>
               <div ws-replace="Menu" ws-children-template="MenuMonth">
                 <p class="menu-label">${Date}</p>

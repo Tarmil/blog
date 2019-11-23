@@ -35,10 +35,13 @@ $family-secondary: Oswald, "Segoe UI", Helvetica, Arial, sans-serif;
 
   .title {
     font-size: 2.5rem;
-    font-family: $family-secondary;
   }
-
+  
   .subtitle {
     font-size: 1.5rem;
   }
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: $family-secondary;
 }

@@ -55,7 +55,7 @@ let parseArticleUrl path =
             slug = m.slug.Value
         }
     else
-        failwithf "Invalid article filename: %s (should be YYMMDD-slug.md)" filename
+        failwithf "Invalid article filename: %s (should be YYYYMMDD-slug.md)" filename
 
 let emptyMetadata =
     {

@@ -38,15 +38,19 @@ module Content =
         )
         |> Map
 
-    let latestArticlesByMonth =
+    let latestArticles =
         articles
         |> Seq.sortByDescending (fun (KeyValue(url, _)) -> url.date)
         |> Seq.truncate 20
-        |> Seq.groupBy (fun (KeyValue(url, _)) -> (url.date.year, url.date.month))
         |> List.ofSeq
+
+    let latestArticlesByMonth =
+        latestArticles
+        |> List.groupBy (fun (KeyValue(url, _)) -> (url.date.year, url.date.month))
 
 module Layout =
     open System.Globalization
+    open WebSharper.UI.Html
 
     type MainTemplate = Templating.Template<const(Paths.layout + "/main.html")>
 
@@ -69,6 +73,33 @@ module Layout =
                     .Doc()
         ]
 
+    let byline (url: Page.ArticleUrl option) (page: Page.Page) =
+        match url with
+        | Some url ->
+            let date = DateTime(url.date.year, url.date.month, url.date.day)
+            MainTemplate.Byline()
+                .Author(page.metadata.author)
+                .Date(date.ToString("D", culture))
+                .Doc()
+        | None -> Doc.Empty
+
+    let tagsList (page: Page.Page) =
+        Doc.Concat [
+            for tag in page.metadata.tags do
+                MainTemplate.Tag().Name(tag).Doc()
+        ]
+
+    let articleList (ctx: Context<EndPoint>) =
+        [
+            for KeyValue(url, page) in Content.latestArticles do
+                yield MainTemplate.ArticleInList()
+                    .Url(ctx.Link(Article url))
+                    .Title(page.metadata.title)
+                    .Body([Doc.Verbatim page.html; byline (Some url) page])
+                    .Tags(tagsList page)
+                    .Doc()
+        ]
+
     let main (ctx: Context<EndPoint>) (page: Page.Page) (url: option<Page.ArticleUrl>) =
         let prevUrl, prevTitle =
             match page.prev with
@@ -78,28 +109,18 @@ module Layout =
             match page.next with
             | Some (url, metadata) -> ctx.Link (Article url), metadata.title + " →"
             | None -> "#", ""
-        let byline =
-            match url with
-            | Some url ->
-                let date = DateTime(url.date.year, url.date.month, url.date.day)
-                MainTemplate.Byline()
-                    .Author(page.metadata.author)
-                    .Date(date.ToString("D", culture))
-                    .Doc()
-            | None -> Doc.Empty
         MainTemplate()
             .Title(page.metadata.title)
             .Subtitle(page.metadata.subtitle)
             .Menu(menu ctx)
             .Body([
-                Doc.Verbatim page.html
-                byline
+                Templating.DynamicTemplate(page.html)
+                    .With("Articles", articleList ctx)
+                    .Doc()
+                byline url page
                 Doc.WebControl (new Require<Css>())
             ])
-            .Tags([
-                for tag in page.metadata.tags do
-                    MainTemplate.Tag().Name(tag).Doc()
-            ])
+            .Tags(tagsList page)
             .PrevUrl(prevUrl)
             .PrevTitle(prevTitle)
             .NextUrl(nextUrl)

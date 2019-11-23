@@ -1,6 +1,6 @@
 ---
-title: Welcome
 overrideTags: true
 ---
 
-Hello world!
+&nbsp;
+<div ws-replace="Articles"></div>
