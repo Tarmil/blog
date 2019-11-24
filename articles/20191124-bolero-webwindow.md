@@ -115,15 +115,26 @@ dotnet run -p src/MyBoleroWebWindowApp.Client
 
 We're on our way!
 Although since we created a project using the `--minimal` template, this is pretty empty.
-We're only seeing the banner that is present statically in `wwwroot/index.html`.
+Quite literally, if you look at `Main.fs`:
+
+```fsharp
+let view model dispatch =
+    empty
+```
+
+Because of this empty view, we're only seeing the banner that is present statically in `wwwroot/index.html`.
 Let's make sure that Bolero is indeed running by implementing the "hello world" of the Elmish world, the Counter app, in `Main.fs`:
 
 ```fsharp
-type Model =
-    { counter: int }
+module MyBoleroWebWindowApp.Client.Main
 
-let initModel =
-    { counter = 0 }
+open Elmish
+open Bolero
+open Bolero.Html
+
+type Model = { counter: int }
+
+let initModel = { counter = 0 }
 
 type Message =
     | Increment
