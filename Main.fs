@@ -119,6 +119,7 @@ module Layout =
                     .Doc()
                 byline url page
                 Doc.WebControl (new Require<Css>())
+                client <@ Client.Main () @>
             ])
             .Tags(tagsList page)
             .PrevUrl(prevUrl)
