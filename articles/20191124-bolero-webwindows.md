@@ -1,6 +1,6 @@
 ---
 title: Desktop applications with Bolero and WebWindow
-tags: [bolero]
+tags: [fsbolero]
 ---
 
 Steve Sanderson [recently published WebWindow](https://blog.stevensanderson.com/2019/11/18/2019-11-18-webwindow-a-cross-platform-webview-for-dotnet-core/): a library that runs a web page in a desktop window, piloted from .NET.
@@ -16,7 +16,7 @@ Obviously, as soon as I saw it, I had to try to use it with [Bolero](https://fsb
 As it turns out, it runs quite well!
 [Here's a simple working application](https://github.com/Tarmil/Bolero.WebWindowTest); let's see how to create it from scratch.
 
-### Creating a Bolero app on WebWindow, step by step
+## Creating a Bolero app on WebWindow, step by step
 
 First, if you don't have it yet, install [the .NET Core 3.0 SDK](https://dotnet.microsoft.com/download) and the Bolero project template:
 
@@ -154,7 +154,7 @@ And now, if we run again:
 
 Hurray!
 
-### What next?
+## What next?
 
 This is just an experiment to see if Bolero would "just work" with WebWindow and, well, it pretty much does.
 As Steve said in his blog article, WebWindow itself is an experiment with no promises of developing it into a proper product.

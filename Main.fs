@@ -89,6 +89,16 @@ module Layout =
                 MainTemplate.Tag().Name(tag).Doc()
         ]
 
+    let tweetButton (ctx: Context<EndPoint>) url (page: Page.Page) =
+        let enc x = System.Net.WebUtility.UrlEncode x
+        let urlStr = page.metadata.rootUrl + "/" + ctx.Link(Article url).Trim([|'/';'.'|]) // Quite hacky :/
+        let tweetUrl =
+            sprintf "https://twitter.com/intent/tweet?url=%s&text=%s&hashtags=%s"
+                urlStr
+                (enc page.metadata.title)
+                (page.metadata.tags |> Seq.map enc |> String.concat ",")
+        MainTemplate.TweetButton().Url(tweetUrl).Doc()
+
     let articleList (ctx: Context<EndPoint>) =
         [
             for KeyValue(url, page) in Content.latestArticles do
@@ -121,7 +131,12 @@ module Layout =
                 Doc.WebControl (new Require<Css>())
                 client <@ Client.Main () @>
             ])
-            .Tags(tagsList page)
+            .Tags([
+                yield tagsList page
+                match url with
+                | None -> ()
+                | Some url -> yield tweetButton ctx url page
+            ])
             .PrevUrl(prevUrl)
             .PrevTitle(prevTitle)
             .NextUrl(nextUrl)

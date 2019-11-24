@@ -31,7 +31,8 @@
                 </article>
               </div>
               <p class="are-tags" ws-hole="Tags">
-                <span ws-template="Tag" class="tag">${Name}</span>
+                <span ws-children-template="Tag"><span class="tag">${Name}</span> </span>
+                <a ws-template="TweetButton" class="tag is-info" href="${Url}">Tweet</a>
               </p>
             </div>
             <nav class="level article-prev-next">

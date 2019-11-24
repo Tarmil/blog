@@ -29,6 +29,7 @@ type Metadata =
         author: string
         tags: string[]
         overrideTags: bool
+        rootUrl: string
     }
 
 type Page =
@@ -64,6 +65,7 @@ let emptyMetadata =
         author = ""
         tags = [||]
         overrideTags = false
+        rootUrl = ""
     }
 
 let yamlSerializer = SharpYaml.Serialization.Serializer()
@@ -78,6 +80,7 @@ let mergeMetadata (m1: Metadata) (m2: Metadata) =
             if m2.overrideTags then m2tags else
             Array.append m1.tags m2tags |> Array.distinct
         overrideTags = m2.overrideTags
+        rootUrl = if isNull m2.rootUrl then m1.rootUrl else m2.rootUrl
     }
 
 let defaultMetadata =
