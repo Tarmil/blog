@@ -3,9 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Taking fsharp turns</title>
-    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[],"$DATA":{"$V":{}}}' />
+    <title>Moving fsharply</title>
+    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws966145653":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
 <link type="text/css" rel="stylesheet" href="/css/all.css"></link>
+<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/atom-one-light.min.css"></link>
 
   </head>
   <body>
@@ -13,8 +14,8 @@
       <div class="hero-body">
         <div class="container">
           <a href="/">
-            <h1 class="title">Taking fsharp turns</h1>
-            <h2 class="subtitle"></h2>
+            <h1 class="title">Moving fsharply</h1>
+            <h2 class="subtitle">Random functional thoughts</h2>
           </a>
         </div>
       </div>
@@ -24,14 +25,271 @@
         <div class="columns">
           <div class="column">
             <div class="content">
-              <p> </p>
-<article class="section">
-                  <h1><a href="article/2019/10/5/blah.html">Blah</a></h1>
-                  <p><em>Hello there</em></p>
-<p><small><em>By Lo&#239;c Denuzi&#232;re on Saturday, October 5, 2019</em></small></p>
-                  <p class="are-tags"><span class="tag">fsharp</span></p>
-                </article>
+              <article class="section">
+                  <h1><a href="article/2019/11/24/bolero-webwindows.html">Desktop applications with Bolero and WebWindow</a></h1>
+                  <p>Steve Sanderson <a href="https://blog.stevensanderson.com/2019/11/18/2019-11-18-webwindow-a-cross-platform-webview-for-dotnet-core/">recently published WebWindow</a>: a library that runs a web page in a desktop window, piloted from .NET.
+In particular, it can run <a href="https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor">Blazor</a> applications natively on the desktop with minimal changes to their code.
+Unlike client-side Blazor, this doesn't involve any WebAssembly: the Blazor code runs in .NET and interacts directly with the web page.</p>
+<p><img src="/assets/blazor-macos.jpg" alt="The Blazor sample app running on WebWindows" /></p>
+<p>This is pretty cool.
+Although it is contained in a web window like an Electron application, it runs with the speed of a native .NET application and comes in a much smaller package.</p>
+<p>Obviously, as soon as I saw it, I had to try to use it with <a href="https://fsbolero.io">Bolero</a>, my own F# layer for Blazor.
+As it turns out, it runs quite well!
+<a href="https://github.com/Tarmil/Bolero.WebWindowTest">Here's a simple working application</a>; let's see how to create it from scratch.</p>
+<h3 id="creating-a-bolero-app-on-webwindow-step-by-step">Creating a Bolero app on WebWindow, step by step</h3>
+<p>First, if you don't have it yet, install <a href="https://dotnet.microsoft.com/download">the .NET Core 3.0 SDK</a> and the Bolero project template:</p>
+<pre><code>dotnet new -i Bolero.Templates
+</code></pre>
+<p>We can now create a Bolero application.</p>
+<pre><code>dotnet new bolero-app --minimal --server=false -o MyBoleroWebWindowApp
+cd MyBoleroWebWindowApp
+</code></pre>
+<p>The full template contains a few pages and uses things like remoting that we would need to untangle for this example, so we'll go for the <code>--minimal</code> template instead.
+Also, we don't want to create an ASP.NET Core host application, so we use <code>--server=false</code>.</p>
+<p>We now have a solution with a single project, <code>src/MyBoleroWebWindowApp.Client</code>, which will directly be our executable.
+Let's fixup the project file <code>MyBoleroWebWindowApp.Client.fsproj</code>.</p>
+<ul>
+<li><p>First, this is not a web project:</p>
+<pre><code class="language-diff"> &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+-&lt;Project Sdk=&quot;Microsoft.NET.Sdk.Web&quot;&gt;
++&lt;Project Sdk=&quot;Microsoft.NET.Sdk&quot;&gt;
+</code></pre>
+</li>
+<li><p>Second, we need to target .NET Core 3.0 and create an executable:</p>
+<pre><code class="language-diff">   &lt;PropertyGroup&gt;
+-    &lt;TargetFramework&gt;netstandard2.0&lt;/TargetFramework&gt;
++    &lt;TargetFramework&gt;netcoreapp3.0&lt;/TargetFramework&gt;
++    &lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+   &lt;/PropertyGroup&gt;
+</code></pre>
+</li>
+<li><p>Now that we removed the <code>Web</code> SDK, the <code>wwwroot</code> will not automatically included in the published application anymore.
+But we still need our assets!</p>
+<pre><code class="language-diff">   &lt;ItemGroup&gt;
++    &lt;Content Include=&quot;wwwroot\**&quot;&gt;
++      &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
++    &lt;/Content&gt;
+     &lt;Compile Include=&quot;Main.fs&quot; /&gt;
+     &lt;Compile Include=&quot;Startup.fs&quot; /&gt;
+   &lt;/ItemGroup&gt;
+</code></pre>
+</li>
+<li><p>Finally, the NuGet references. We need to remove the Blazor build packages that compile our project into a WebAssembly application, and instead add WebWindow.</p>
+<pre><code class="language-diff">   &lt;ItemGroup&gt;
+     &lt;PackageReference Include=&quot;Bolero&quot; Version=&quot;0.10.1-preview9&quot; /&gt;
+-    &lt;PackageReference Include=&quot;Bolero.Build&quot; Version=&quot;0.10.1-preview9&quot; /&gt;
+-    &lt;PackageReference Include=&quot;Microsoft.AspNetCore.Blazor.Build&quot; Version=&quot;3.0-preview9.*&quot; /&gt;
+-    &lt;PackageReference Include=&quot;Microsoft.AspNetCore.Blazor.DevServer&quot; Version=&quot;3.0-preview9.*&quot; /&gt;
++    &lt;PackageReference Include=&quot;WebWindow.Blazor&quot; Version=&quot;0.1.0-20191120.6&quot; /&gt;
+   &lt;/ItemGroup&gt;
+ &lt;/Project&gt;
+</code></pre>
+</li>
+</ul>
+<p>The main program, <code>Startup.fs</code>, needs a bit of change to start as a WebWindow application rather than a WebAssembly one.
+Luckily, Steve made this very easy:</p>
+<pre><code class="language-diff"> module Program =
++    open WebWindows.Blazor
+ 
+     [&lt;EntryPoint&gt;]
+     let Main args =
+-        BlazorWebAssemblyHost.CreateDefaultBuilder()
+-            .UseBlazorStartup&lt;Startup&gt;()
+-            .Build()
+-            .Run()
++        ComponentsDesktop.Run&lt;Startup&gt;(&quot;My Bolero app&quot;, &quot;wwwroot/index.html&quot;)
+         0
+</code></pre>
+<p>And finally, the small JavaScript script that boots Bolero is in a different location, so we need to touch <code>wwwroot/index.html</code>:</p>
+<pre><code class="language-diff">-    &lt;script src=&quot;_framework/blazor.webassembly.js&quot;&gt;&lt;/script&gt;
++    &lt;script src=&quot;framework://blazor.desktop.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>And with this, we're all set!
+Run the application using your IDE or from the command line:</p>
+<pre><code>dotnet run -p src/MyBoleroWebWindowApp.Client
+</code></pre>
+<blockquote>
+<p>Note: if you're using Visual Studio, make sure to remove the file <code>Properties/launchSettings.json</code> it may have created while the SDK was still <code>Web</code>; otherwise, it will try (and fail) to run your project with IIS Express.</p>
+</blockquote>
+<p><img src="/assets/webwindow-empty.png" alt="The Bolero minimal app running on WebWindow" /></p>
+<p>We're on our way!
+Although since we created a project using the <code>--minimal</code> template, this is pretty empty.
+We're only seeing the banner that is present statically in <code>wwwroot/index.html</code>.
+Let's make sure that Bolero is indeed running by implementing the &quot;hello world&quot; of the Elmish world, the Counter app, in <code>Main.fs</code>:</p>
+<pre><code class="language-fsharp">type Model =
+    { counter: int }
 
+let initModel =
+    { counter = 0 }
+
+type Message =
+    | Increment
+    | Decrement
+
+let update message model =
+    match message with
+    | Increment -&gt; { model with counter = model.counter + 1 }
+    | Decrement -&gt; { model with counter = model.counter - 1 }
+
+let view model dispatch =
+    concat [
+        button [on.click (fun _ -&gt; dispatch Decrement)] [text &quot;-&quot;]
+        textf &quot; %i &quot; model.counter
+        button [on.click (fun _ -&gt; dispatch Increment)] [text &quot;+&quot;]
+    ]
+
+type MyApp() =
+    inherit ProgramComponent&lt;Model, Message&gt;()
+
+    override this.Program =
+        Program.mkSimple (fun _ -&gt; initModel) update view
+</code></pre>
+<p>And now, if we run again:</p>
+<p><img src="/assets/webwindow-counter.png" alt="The Bolero counter app running on WebWindow" /></p>
+<p>Hurray!</p>
+<h3 id="what-next">What next?</h3>
+<p>This is just an experiment to see if Bolero would &quot;just work&quot; with WebWindow and, well, it pretty much does.
+As Steve said in his blog article, WebWindow itself is an experiment with no promises of developing it into a proper product.
+But it is still pretty cool, and I want to see how far we can combine it with Bolero.
+What about remoting with an ASP.NET Core server?
+Or HTML template hot reloading?
+These will probably need some adjustments to work nicely with WebWindow, and I think I'll experiment some more with these.</p>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Sunday, November 24, 2019</em></small></p>
+                  <p class="are-tags"><span class="tag">fsharp</span><span class="tag">bolero</span></p>
+                </article><article class="section">
+                  <h1><a href="article/2019/11/23/bolero-webwindows.html">Desktop applications with Bolero and WebWindow</a></h1>
+                  <p>Steve Sanderson <a href="https://blog.stevensanderson.com/2019/11/18/2019-11-18-webwindow-a-cross-platform-webview-for-dotnet-core/">recently published WebWindow</a>: a library that runs a web page in a desktop window, piloted from .NET.
+In particular, it can run <a href="https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor">Blazor</a> applications natively on the desktop with minimal changes to their code.
+Unlike client-side Blazor, this doesn't involve any WebAssembly: the Blazor code runs in .NET and interacts directly with the web page.</p>
+<p><img src="/assets/blazor-macos.jpg" alt="The Blazor sample app running on WebWindows" /></p>
+<p>This is pretty cool.
+Although it is contained in a web window like an Electron application, it runs with the speed of a native .NET application and comes in a much smaller package.</p>
+<p>Obviously, as soon as I saw it, I had to try to use it with <a href="https://fsbolero.io">Bolero</a>, my own F# layer for Blazor.
+As it turns out, it runs quite well!
+<a href="https://github.com/Tarmil/Bolero.WebWindowTest">Here's a simple working application</a>; let's see how to create it from scratch.</p>
+<h2 id="creating-a-bolero-app-on-webwindow-step-by-step">Creating a Bolero app on WebWindow, step by step</h2>
+<p>First, if you don't have it yet, install <a href="https://dotnet.microsoft.com/download">the .NET Core 3.0 SDK</a> and the Bolero project template:</p>
+<pre><code>dotnet new -i Bolero.Templates
+</code></pre>
+<p>We can now create a Bolero application.</p>
+<pre><code>dotnet new bolero-app --minimal --server=false -o MyBoleroWebWindowApp
+cd MyBoleroWebWindowApp
+</code></pre>
+<p>The full template contains a few pages and uses things like remoting that we would need to untangle for this example, so we'll go for the <code>--minimal</code> template instead.
+Also, we don't want to create an ASP.NET Core host application, so we use <code>--server=false</code>.</p>
+<p>We now have a solution with a single project, <code>src/MyBoleroWebWindowApp.Client</code>, which will directly be our executable.
+Let's fixup the project file <code>MyBoleroWebWindowApp.Client.fsproj</code>.</p>
+<ul>
+<li><p>First, this is not a web project:</p>
+<pre><code class="language-diff"> &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+-&lt;Project Sdk=&quot;Microsoft.NET.Sdk.Web&quot;&gt;
++&lt;Project Sdk=&quot;Microsoft.NET.Sdk&quot;&gt;
+</code></pre>
+</li>
+<li><p>Second, we need to target .NET Core 3.0 and create an executable:</p>
+<pre><code class="language-diff">   &lt;PropertyGroup&gt;
+-    &lt;TargetFramework&gt;netstandard2.0&lt;/TargetFramework&gt;
++    &lt;TargetFramework&gt;netcoreapp3.0&lt;/TargetFramework&gt;
++    &lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+   &lt;/PropertyGroup&gt;
+</code></pre>
+</li>
+<li><p>Now that we removed the <code>Web</code> SDK, the <code>wwwroot</code> will not automatically included in the published application anymore.
+But we still need our assets!</p>
+<pre><code class="language-diff">   &lt;ItemGroup&gt;
++    &lt;Content Include=&quot;wwwroot\**&quot;&gt;
++      &lt;CopyToOutputDirectory&gt;PreserveNewest&lt;/CopyToOutputDirectory&gt;
++    &lt;/Content&gt;
+     &lt;Compile Include=&quot;Main.fs&quot; /&gt;
+     &lt;Compile Include=&quot;Startup.fs&quot; /&gt;
+   &lt;/ItemGroup&gt;
+</code></pre>
+</li>
+<li><p>Finally, the NuGet references. We need to remove the Blazor build packages that compile our project into a WebAssembly application, and instead add WebWindow.</p>
+<pre><code class="language-diff">   &lt;ItemGroup&gt;
+     &lt;PackageReference Include=&quot;Bolero&quot; Version=&quot;0.10.1-preview9&quot; /&gt;
+-    &lt;PackageReference Include=&quot;Bolero.Build&quot; Version=&quot;0.10.1-preview9&quot; /&gt;
+-    &lt;PackageReference Include=&quot;Microsoft.AspNetCore.Blazor.Build&quot; Version=&quot;3.0-preview9.*&quot; /&gt;
+-    &lt;PackageReference Include=&quot;Microsoft.AspNetCore.Blazor.DevServer&quot; Version=&quot;3.0-preview9.*&quot; /&gt;
++    &lt;PackageReference Include=&quot;WebWindow.Blazor&quot; Version=&quot;0.1.0-20191120.6&quot; /&gt;
+   &lt;/ItemGroup&gt;
+ &lt;/Project&gt;
+</code></pre>
+</li>
+</ul>
+<p>The main program, <code>Startup.fs</code>, needs a bit of change to start as a WebWindow application rather than a WebAssembly one.
+Luckily, Steve made this very easy:</p>
+<pre><code class="language-diff"> module Program =
++    open WebWindows.Blazor
+ 
+     [&lt;EntryPoint&gt;]
+     let Main args =
+-        BlazorWebAssemblyHost.CreateDefaultBuilder()
+-            .UseBlazorStartup&lt;Startup&gt;()
+-            .Build()
+-            .Run()
++        ComponentsDesktop.Run&lt;Startup&gt;(&quot;My Bolero app&quot;, &quot;wwwroot/index.html&quot;)
+         0
+</code></pre>
+<p>And finally, the small JavaScript script that boots Bolero is in a different location, so we need to touch <code>wwwroot/index.html</code>:</p>
+<pre><code class="language-diff">-    &lt;script src=&quot;_framework/blazor.webassembly.js&quot;&gt;&lt;/script&gt;
++    &lt;script src=&quot;framework://blazor.desktop.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>And with this, we're all set!
+Run the application using your IDE or from the command line:</p>
+<pre><code>dotnet run -p src/MyBoleroWebWindowApp.Client
+</code></pre>
+<blockquote>
+<p>Note: if you're using Visual Studio, make sure to remove the file <code>Properties/launchSettings.json</code> it may have created while the SDK was still <code>Web</code>; otherwise, it will try (and fail) to run your project with IIS Express.</p>
+</blockquote>
+<p><img src="/assets/webwindow-empty.png" alt="The Bolero minimal app running on WebWindow" /></p>
+<p>We're on our way!
+Although since we created a project using the <code>--minimal</code> template, this is pretty empty.
+We're only seeing the banner that is present statically in <code>wwwroot/index.html</code>.
+Let's make sure that Bolero is indeed running by implementing the &quot;hello world&quot; of the Elmish world, the Counter app, in <code>Main.fs</code>:</p>
+<pre><code class="language-fsharp">type Model =
+    { counter: int }
+
+let initModel =
+    { counter = 0 }
+
+type Message =
+    | Increment
+    | Decrement
+
+let update message model =
+    match message with
+    | Increment -&gt; { model with counter = model.counter + 1 }
+    | Decrement -&gt; { model with counter = model.counter - 1 }
+
+let view model dispatch =
+    concat [
+        button [on.click (fun _ -&gt; dispatch Decrement)] [text &quot;-&quot;]
+        textf &quot; %i &quot; model.counter
+        button [on.click (fun _ -&gt; dispatch Increment)] [text &quot;+&quot;]
+    ]
+
+type MyApp() =
+    inherit ProgramComponent&lt;Model, Message&gt;()
+
+    override this.Program =
+        Program.mkSimple (fun _ -&gt; initModel) update view
+</code></pre>
+<p>And now, if we run again:</p>
+<p><img src="/assets/webwindow-counter.png" alt="The Bolero counter app running on WebWindow" /></p>
+<p>Hurray!</p>
+<h2 id="what-next">What next?</h2>
+<p>This is just an experiment to see if Bolero would &quot;just work&quot; with WebWindow and, well, it pretty much does.
+As Steve said in his blog article, WebWindow itself is an experiment with no promises of developing it into a proper product.
+But it is still pretty cool, and I want to see how far we can combine it with Bolero.
+What about remoting with an ASP.NET Core server?
+Or HTML template hot reloading?
+These will probably need some adjustments to work nicely with WebWindow, and I think I'll experiment some more with these.</p>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Saturday, November 23, 2019</em></small></p>
+                  <p class="are-tags"><span class="tag">fsharp</span><span class="tag">bolero</span></p>
+                </article>
+<p> </p>
+<div id="ws966145653"></div>
               <p class="are-tags"></p>
             </div>
             <nav class="level article-prev-next">
@@ -49,12 +307,10 @@
           </div>
           <div class="column is-one-quarter">
             <aside class="menu">
-              <ul class="menu-list">
-                <li><a href="/about">About</a></li>
-              </ul>
               
-                <p class="menu-label">October 2019</p>
-                <ul class="menu-list"><li><a href="article/2019/10/5/blah.html">Blah</a></li></ul>
+              
+                <p class="menu-label">November 2019</p>
+                <ul class="menu-list"><li><a href="article/2019/11/24/bolero-webwindows.html">Desktop applications with Bolero and WebWindow</a></li><li><a href="article/2019/11/23/bolero-webwindows.html">Desktop applications with Bolero and WebWindow</a></li></ul>
               
             </aside>
           </div>
@@ -70,5 +326,14 @@
         </p>
       </div>
     </footer>
+    <script src="Scripts/WebSharper.Core.JavaScript/Runtime.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/fsharp.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/diff.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/xml.min.js" type="text/javascript" charset="UTF-8"></script><!--[if lte IE 7.0]>
+<script src="Scripts/WebSharper.Main/Json.min.js" type="text/javascript" charset="UTF-8"></script><![endif]-->
+<script src="Scripts/WebSharper.Main/WebSharper.Main.min.js" type="text/javascript" charset="UTF-8"></script><script src="Scripts/WebSharper.Collections/WebSharper.Collections.min.js" type="text/javascript" charset="UTF-8"></script><script src="Scripts/WebSharper.Web/WebSharper.Web.min.js" type="text/javascript" charset="UTF-8"></script><script src="Scripts/blog/blog.min.js" type="text/javascript" charset="UTF-8"></script><script type="text/javascript">
+if (typeof IntelliFactory !=='undefined') {
+  IntelliFactory.Runtime.ScriptBasePath = 'Scripts/';
+  IntelliFactory.Runtime.Start();
+}
+</script>
+
   </body>
 </html>
