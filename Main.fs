@@ -58,6 +58,10 @@ module Layout =
 
     let culture = CultureInfo.GetCultureInfo("en-US")
 
+    let link (ctx: Context<EndPoint>) ep =
+        let s = ctx.Link(ep)
+        if s.EndsWith(".html") then s.[..s.Length-6] else s
+
     let menu (ctx: Context<EndPoint>) =
         [
             for (year, month), articles in Content.latestArticlesByMonth do
@@ -66,7 +70,7 @@ module Layout =
                     .Articles([
                         for KeyValue(url, page) in articles do
                             MainTemplate.MenuArticle()
-                                .Url(ctx.Link (Article url))
+                                .Url(link ctx (Article url))
                                 .Title(page.metadata.title)
                                 .Doc()
                     ])
@@ -91,7 +95,7 @@ module Layout =
 
     let tweetButton (ctx: Context<EndPoint>) url (page: Page.Page) =
         let enc x = System.Net.WebUtility.UrlEncode x
-        let urlStr = page.metadata.rootUrl + "/" + ctx.Link(Article url).Trim([|'/';'.'|]) // Quite hacky :/
+        let urlStr = page.metadata.rootUrl + "/" + (link ctx (Article url)).Trim([|'/';'.'|]) // Quite hacky :/
         let tweetUrl =
             sprintf "https://twitter.com/intent/tweet?url=%s&text=%s&hashtags=%s"
                 urlStr
@@ -103,7 +107,7 @@ module Layout =
         [
             for KeyValue(url, page) in Content.latestArticles do
                 yield MainTemplate.ArticleInList()
-                    .Url(ctx.Link(Article url))
+                    .Url(link ctx (Article url))
                     .Title(page.metadata.title)
                     .Body([Doc.Verbatim page.html; byline (Some url) page])
                     .Tags(tagsList page)
@@ -113,11 +117,11 @@ module Layout =
     let main (ctx: Context<EndPoint>) (page: Page.Page) (url: option<Page.ArticleUrl>) =
         let prevUrl, prevTitle =
             match page.prev with
-            | Some (url, metadata) -> ctx.Link (Article url), "← " + metadata.title
+            | Some (url, metadata) -> link ctx (Article url), "← " + metadata.title
             | None -> "#", ""
         let nextUrl, nextTitle =
             match page.next with
-            | Some (url, metadata) -> ctx.Link (Article url), metadata.title + " →"
+            | Some (url, metadata) -> link ctx (Article url), metadata.title + " →"
             | None -> "#", ""
         MainTemplate()
             .Title(page.metadata.title)
