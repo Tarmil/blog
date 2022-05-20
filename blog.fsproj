@@ -6,7 +6,7 @@
     <WebSharperHtmlDirectory>$(MSBuildThisFileDirectory)bin/html</WebSharperHtmlDirectory>
     <StartAction>Program</StartAction>
     <StartProgram>dotnet</StartProgram>
-    <StartArguments>serve -d "$(WebSharperHtmlDirectory)" --default-extensions:html</StartArguments>
+    <StartArguments>serve -d:"$(WebSharperHtmlDirectory)" --default-extensions:html</StartArguments>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,10 +37,10 @@
     <PackageReference Include="Markdig" Version="0.17.1" />
     <PackageReference Include="SharpYaml" Version="1.6.5" />
     <!-- <ProjectReference Include="../sharpyaml/SharpYaml/SharpYaml.csproj" /> -->
-    <PackageReference Include="WebSharper" Version="4.5.19.349" />
-    <PackageReference Include="WebSharper.FSharp" Version="4.5.19.349" />
-    <PackageReference Include="WebSharper.UI" Version="4.5.13.180" />
-    <PackageReference Include="WebSharper.HighlightJs" Version="4.5.2.163" />
+    <PackageReference Include="WebSharper" Version="5.0.0.120" />
+    <PackageReference Include="WebSharper.FSharp" Version="5.0.0.120" />
+    <PackageReference Include="WebSharper.UI" Version="5.0.0.120" />
+    <PackageReference Include="WebSharper.HighlightJs" Version="5.0.0.120" />
   </ItemGroup>
 
   <Target Name="CompileScss" BeforeTargets="BeforeBuild">
