@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FSharp.SystemTextJson 1.0 released!</title>
+    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws341064835":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
+<link type="text/css" rel="stylesheet" href="/css/all.css"></link>
+<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/atom-one-light.min.css"></link>
+
+  </head>
+  <body>
+    <header class="hero is-medium">
+      <div class="hero-body">
+        <div class="container">
+          <a href="/">
+            <h1 class="title">FSharp.SystemTextJson 1.0 released!</h1>
+            <h2 class="subtitle"></h2>
+          </a>
+        </div>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container">
+        <div class="columns">
+          <div class="column is-two-thirds">
+            <div class="content">
+              <p>More than three years after the first release, I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.0!</p>
+<p>FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard <a href="https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0">System.Text.Json</a>.</p>
+<p>Here is a summary of the new features in v1.0.</p>
+<h2 id="jsonname-attribute"><code>JsonName</code> attribute</h2>
+<p>System.Text.Json provides an attribute <code>JsonPropertyName</code> to change the name of a property in JSON.
+In FSharp.SystemTextJson 1.0, the new attribute <a href="https://github.com/Tarmil/FSharp.SystemTextJson/blob/master/docs/Customizing.md#jsonname"><code>JsonName</code></a> is equivalent but provides more functionality:</p>
+<ul>
+<li><p>When used on a discriminated union case, <code>JsonName</code> can take a value of type <code>int</code> or <code>bool</code> instead of <code>string</code>.</p>
+<pre><code class="language-fsharp">type MyUnion =
+    | [&lt;JsonName 1&gt;] One of x: int
+    | [&lt;JsonName 2&gt;] Two of y: string
+
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default ||| JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+JsonSerializer.Serialize(Two &quot;two&quot;, options)
+// =&gt; {&quot;Case&quot;:2,&quot;x&quot;:&quot;two&quot;}
+</code></pre>
+</li>
+<li><p><code>JsonName</code> can take multiple values.
+When deserializing, all these values are treated as equivalent.
+When serializing, the first one is used.</p>
+<pre><code class="language-fsharp">type Name =
+    { [&lt;JsonName(&quot;firstName&quot;, &quot;first&quot;)&gt;]
+      First: string
+      [&lt;JsonName(&quot;lastName&quot;, &quot;last&quot;)&gt;]
+      Last: string }
+
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter())
+JsonSerializer.Deserialize&lt;Name&gt;(&quot;&quot;&quot;{&quot;first&quot;:&quot;John&quot;,&quot;last&quot;:&quot;Doe&quot;}&quot;&quot;&quot;, options)
+// =&gt; { First = &quot;John&quot;; Last = &quot;Doe&quot; }
+
+JsonSerializer.Serialize({ First = &quot;John&quot;; Last = &quot;Doe&quot; }, options)
+// =&gt; {&quot;firstName&quot;:&quot;John&quot;,&quot;lastName&quot;:&quot;Doe&quot;}
+</code></pre>
+</li>
+<li><p><code>JsonName</code> has a settable property <code>Field: string</code>.
+It is used to set the JSON name of a union case field with the given name.</p>
+<pre><code class="language-fsharp">type Contact =
+    | [&lt;JsonName(&quot;email&quot;, Field = &quot;address&quot;)&gt;]
+      Email of address: string
+    | Phone of number: string
+
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default ||| JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+JsonSerializer.Serialize(Email &quot;john.doe@example.com&quot;)
+// =&gt; {&quot;Case&quot;:&quot;Email&quot;,&quot;email&quot;:&quot;john.doe@example.com&quot;}
+</code></pre>
+</li>
+</ul>
+<h2 id="record-properties">Record properties</h2>
+<p>By default, FSharp.SystemTextJson only serializes the fields of a record.
+There are now two ways to also serialize their properties:</p>
+<ul>
+<li><p>The option <code>includeRecordProperties: bool</code> enables serializing all record properties (except those that have the attribute <code>JsonIgnore</code>, just like fields).</p>
+<pre><code class="language-fsharp">type User =
+    { id: int
+      name: string }
+
+    member this.profileUrl = $&quot;https://example.com/user/{this.id}/{this.name}&quot;
+
+    [&lt;JsonIgnore&gt;]
+    member this.notIncluded = &quot;This property is not included&quot;
+
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+JsonSerializer.Serialize({ id = 1234; name = &quot;john.doe&quot; })
+// =&gt; {&quot;id&quot;:1234,&quot;name&quot;:&quot;john.doe&quot;,&quot;profileUrl&quot;:&quot;https://example.com/user/1234/john.doe&quot;}
+</code></pre>
+</li>
+<li><p>The attribute <code>JsonInclude</code> can be used on a specific property to serialize it.</p>
+<pre><code class="language-fsharp">type User =
+    { id: int
+      name: string }
+
+    [&lt;JsonInclude&gt;]
+    member this.profileUrl = $&quot;https://example.com/user/{this.id}/{this.name}&quot;
+
+    member this.notIncluded = &quot;This property is not included&quot;
+
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter())
+JsonSerializer.Serialize({ id = 1234; name = &quot;john.doe&quot; })
+// =&gt; {&quot;id&quot;:1234,&quot;name&quot;:&quot;john.doe&quot;,&quot;profileUrl&quot;:&quot;https://example.com/user/1234/john.doe&quot;}
+</code></pre>
+</li>
+</ul>
+<h2 id="breaking-change-missing-fields">BREAKING CHANGE: Missing fields</h2>
+<p>In FSharp.SystemTextJson 0.x, using default options, missing fields of type <code>option</code> or <code>voption</code> would be deserialized into <code>None</code> or <code>ValueNone</code>.
+This was unintended behavior, which is corrected in version 1.0: these missing fields now throw an error.
+To restore the previous behavior, either enable the option <code>IgnoreNullValues = true</code>, or or use the type <a href="https://github.com/Tarmil/FSharp.SystemTextJson/blob/master/docs/Format.md#skippable"><code>Skippable</code></a> instead of <code>option</code> or <code>voption</code>.</p>
+<p>Additionally, the option <code>DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull</code> is now treated as a synonym for <code>IgnoreNullValues = true</code>.</p>
+<pre><code class="language-fsharp">type Name =
+    { firstName: string
+      lastName: string option }
+
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter())
+JsonSerializer.Deserialize&lt;Name&gt;(&quot;&quot;&quot;{&quot;firstName&quot;:&quot;John&quot;}&quot;&quot;&quot;, options)
+// =&gt; JsonException
+
+let options2 = JsonSerializerOptions(IgnoreNullValues = true)
+options2.Converters.Add(JsonFSharpConverter())
+JsonSerializer.Deserialize&lt;Name&gt;(&quot;&quot;&quot;{&quot;firstName&quot;:&quot;John&quot;}&quot;&quot;&quot;, options2)
+// =&gt; { firstName = &quot;John&quot;; lastName = None }
+
+let options3 = JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+options3.Converters.Add(JsonFSharpConverter())
+JsonSerializer.Deserialize&lt;Name&gt;(&quot;&quot;&quot;{&quot;firstName&quot;:&quot;John&quot;}&quot;&quot;&quot;, options3)
+// =&gt; { firstName = &quot;John&quot;; lastName = None }
+
+type NameWithSkippable =
+    { firstName: string
+      lastName: Skippable&lt;string&gt; }
+
+let options4 = JsonSerializerOptions()
+options4.Converters.Add(JsonFSharpConverter())
+JsonSerializer.Deserialize&lt;Name&gt;(&quot;&quot;&quot;{&quot;firstName&quot;:&quot;John&quot;}&quot;&quot;&quot;, options4)
+// =&gt; { firstName = &quot;John&quot;; lastName = Skip }
+</code></pre>
+<h2 id="built-in-support-in.net-6-and-jsonfsharptypes">Built-in support in .NET 6 and JsonFSharpTypes</h2>
+<p>In .NET 6, support has been added in System.Text.Json for a number of F# types.
+This support is different from FSharp.SystemTextJson in a number of ways:</p>
+<ul>
+<li>Records, tuples, lists, sets, maps: <code>null</code> is accepted by the deserializer, and returns a null value.</li>
+<li>Records: missing fields are deserialized to default value instead of throwing an error.</li>
+<li>Maps: only primitive keys are supported. Numbers and booleans are converted to string and used as JSON objet keys.</li>
+<li>Tuples: only supports up to 8 items, and serializes it as a JSON object with keys &quot;Item1&quot;, &quot;Item2&quot;, etc.</li>
+<li>Discriminated unions, struct tuples: not supported.</li>
+</ul>
+<p>FSharp.SystemTextJson takes over the serialization of these types by default; but the option <a href="https://github.com/Tarmil/FSharp.SystemTextJson/blob/master/docs/Customizing.md#types"><code>types: JsonFSharpTypes</code></a> allows customizing which types should be serialized by <code>FSharp.SystemTextJson</code>, and which types should be left to <code>System.Text.Json</code>.</p>
+<pre><code class="language-fsharp">let options = JsonSerializerOptions()
+// Only use FSharp.SystemTextJson for records and unions:
+options.Converters.Add(JsonFSharpOptions(types = (JsonFSharpTypes.Records ||| JsonFSharpTypes.Unions)))
+
+JsonSerializer.Serialize(Map [(1, &quot;one&quot;); (2, &quot;two&quot;)], options)
+// =&gt; {&quot;1&quot;:&quot;one&quot;,&quot;2&quot;:&quot;two&quot;}
+// whereas FSharp.SystemTextJson would have serialized as:
+// =&gt; [[1,&quot;one&quot;],[2,&quot;two&quot;]]
+</code></pre>
+<p>Happy coding!</p>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Sunday, September 25, 2022</em></small></p><div id="ws341064835"></div>
+              <p class="are-tags"><span class="tag">fsharp</span> <span class="tag">release</span> <span class="tag">library</span> <span class="tag">fsharp-systemtextjson</span> <a class="tag is-info" href="https://twitter.com/intent/tweet?url=https://tarmil.fr/article/2022/9/25/systemtextjson-v1.0&amp;text=FSharp.SystemTextJson+1.0+released!&amp;hashtags=fsharp,release,library,fsharp-systemtextjson">Tweet</a></p>
+            </div>
+            <nav class="level article-prev-next">
+              <div class="level-left">
+                <div class="level-item">
+                  <a href="../../../../article/2022/5/27/fsharp-data-literalproviders-1-0">← FSharp.Data.LiteralProviders 1.0 is here!</a>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <a href="../../../../article/2019/11/24/bolero-webwindow">Desktop applications with Bolero and WebWindow →</a>
+                </div>
+              </div>
+            </nav>
+          </div>
+          <div class="column is-one-third">
+            <aside class="menu">
+              
+              
+                <p class="menu-label">September 2022</p>
+                <ul class="menu-list"><li><a href="../../../../article/2022/9/25/systemtextjson-v1.0">FSharp.SystemTextJson 1.0 released!</a></li></ul>
+              
+                <p class="menu-label">May 2022</p>
+                <ul class="menu-list"><li><a href="../../../../article/2022/5/27/fsharp-data-literalproviders-1-0">FSharp.Data.LiteralProviders 1.0 is here!</a></li></ul>
+              
+                <p class="menu-label">December 2019</p>
+                <ul class="menu-list"><li><a href="../../../../article/2019/12/17/elmish-page-model">Managing page-specific models in Elmish</a></li></ul>
+              
+                <p class="menu-label">November 2019</p>
+                <ul class="menu-list"><li><a href="../../../../article/2019/11/24/bolero-webwindow">Desktop applications with Bolero and WebWindow</a></li></ul>
+              
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer">
+      <div class="content has-text-centered">
+        <p>
+          &copy; 2019 Loïc Denuzière.
+          Website content licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+          Source code <a href="https://github.com/tarmil/tarmil.github.io">on GitHub</a> and licensed under <a href="https://opensource.org/licenses/mit-license.php">MIT</a>.
+        </p>
+      </div>
+    </footer>
+    <script src="../../../../Scripts/WebSharper.Core.JavaScript/Runtime.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/fsharp.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/diff.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/xml.min.js" type="text/javascript" charset="UTF-8"></script><!--[if lte IE 7.0]>
+<script src="../../../../Scripts/WebSharper.Main/Json.min.js" type="text/javascript" charset="UTF-8"></script><![endif]-->
+<script src="../../../../Scripts/WebSharper.Main/WebSharper.Main.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/WebSharper.Collections/WebSharper.Collections.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/WebSharper.Web/WebSharper.Web.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/blog/blog.min.js" type="text/javascript" charset="UTF-8"></script><script type="text/javascript">
+if (typeof IntelliFactory !=='undefined') {
+  IntelliFactory.Runtime.ScriptBasePath = '../../../../Scripts/';
+  IntelliFactory.Runtime.Start();
+}
+</script>
+
+  </body>
+</html>
