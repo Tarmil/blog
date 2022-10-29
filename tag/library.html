@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FSharp.SystemTextJson 1.0 released!</title>
-    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws1756696347":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
+    <title>Une pipe |&gt; Ceci n&#39;est pas</title>
+    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws810348342":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
 <link type="text/css" rel="stylesheet" href="/css/all.css"></link>
 <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/atom-one-light.min.css"></link>
 
@@ -14,8 +14,8 @@
       <div class="hero-body">
         <div class="container">
           <a href="/">
-            <h1 class="title">FSharp.SystemTextJson 1.0 released!</h1>
-            <h2 class="subtitle"></h2>
+            <h1 class="title">Une pipe |&gt; Ceci n&#39;est pas</h1>
+            <h2 class="subtitle">Random functional thoughts</h2>
           </a>
         </div>
       </div>
@@ -25,7 +25,14 @@
         <div class="columns">
           <div class="column is-two-thirds">
             <div class="content">
-              <p>More than three years after the first release, I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.0!</p>
+              <p>Welcome! I am Loïc Denuzière aka &quot;Tarmil&quot;, and this is my technical blog.
+I'm a French developer who's quite passionate about functional programming, and I've been using F# for most of my work for over ten years.</p>
+<p>I've been one of the main developers of <a href="https://websharper.com">WebSharper</a>, the F# web framework with both server-side and JavaScript-compiled client-side tools.
+Recently I've been focusing more on <a href="https://fsbolero.io">Bolero</a>, a library that runs F# applications in WebAssembly using Blazor, and other personal projects.</p>
+<p>Follow me on <a href="https://twitter.com/tarmil_">Twitter</a>, <a href="https://mastodon.social/@tarmil" rel="me">Mastodon</a> and find me on <a href="https://github.com/tarmil">GitHub</a>.</p>
+<article class="section">
+                  <h1><a href="../article/2022/9/25/systemtextjson-v1.0">FSharp.SystemTextJson 1.0 released!</a></h1>
+                  <p>More than three years after the first release, I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.0!</p>
 <p>FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard <a href="https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0">System.Text.Json</a>.</p>
 <p>Here is a summary of the new features in v1.0.</p>
 <h2 id="jsonname-attribute"><code>JsonName</code> attribute</h2>
@@ -166,18 +173,82 @@ JsonSerializer.Serialize(Map [(1, &quot;one&quot;); (2, &quot;two&quot;)], optio
 // =&gt; [[1,&quot;one&quot;],[2,&quot;two&quot;]]
 </code></pre>
 <p>Happy coding!</p>
-<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Sunday, September 25, 2022</em></small></p><div id="ws1756696347"></div>
-              <p class="are-tags"><a href="../../../../tag/fsharp" class="tag">fsharp</a> <a href="../../../../tag/release" class="tag">release</a> <a href="../../../../tag/library" class="tag">library</a> <a href="../../../../tag/fsharp-systemtextjson" class="tag">fsharp-systemtextjson</a> <a class="tag is-info" href="https://twitter.com/intent/tweet?url=https://tarmil.fr/article/2022/9/25/systemtextjson-v1.0&amp;text=FSharp.SystemTextJson+1.0+released!&amp;hashtags=fsharp,release,library,fsharp-systemtextjson">Tweet</a></p>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Sunday, September 25, 2022</em></small></p>
+                  <p class="are-tags"><a href="../tag/fsharp" class="tag">fsharp</a> <a href="../tag/release" class="tag">release</a> <a href="../tag/library" class="tag">library</a> <a href="../tag/fsharp-systemtextjson" class="tag">fsharp-systemtextjson</a> </p>
+                </article><article class="section">
+                  <h1><a href="../article/2022/5/27/fsharp-data-literalproviders-1-0">FSharp.Data.LiteralProviders 1.0 is here!</a></h1>
+                  <p>I am happy to announce that the library <a href="https://github.com/tarmil/fsharp.data.literalproviders">FSharp.Data.LiteralProviders</a> has reached version 1.0!</p>
+<p>FSharp.Data.LiteralProviders is an F# type provider library that provides compile-time constants from various sources, such as environment variables or files:</p>
+<pre><code class="language-fsharp">open FSharp.Data.LiteralProviders
+
+// Get a value from an environment variable, another one from a file,
+// and pass them to another type provider.
+
+let [&lt;Literal&gt;] ConnectionString = Env&lt;&quot;CONNECTION_STRING&quot;&gt;.Value
+let [&lt;Literal&gt;] GetUserDataQuery = TextFile&lt;&quot;GetUserData.sql&quot;&gt;.Text
+
+type GetUserData = FSharp.Data.SqlCommandProvider&lt;GetUserDataQuery, ConnectionString&gt;
+
+let getUserData (userId: System.Guid) =
+    GetUserData.Create().Execute(UserId = userId)
+</code></pre>
+<p>Here is a summary of the new features in v1.0.</p>
+<h2 id="running-an-external-command">Running an external command</h2>
+<p>The <code>Exec</code> provider runs an external command during compilation and provides its output.</p>
+<pre><code class="language-fsharp">open FSharp.Data.LiteralProviders
+
+let [&lt;Literal&gt;] Branch = Exec&lt;&quot;git&quot;, &quot;branch --show-current&quot;&gt;.Output
+</code></pre>
+<p>More options are available to pass input, get the error output, the exit code, etc.
+See <a href="https://github.com/Tarmil/FSharp.Data.LiteralProviders/blob/master/README.md#exec">the documentation</a>.</p>
+<h2 id="conditionals">Conditionals</h2>
+<p>The sub-namespaces <code>String</code>, <code>Int</code> and <code>Bool</code> provide a collection of compile-time conditional operators for the corresponding types.</p>
+<p>For example, you can compare two integer values with <code>Int.LT</code>; combine two booleans with <code>Bool.OR</code>; or choose between two strings with <code>String.IF</code>.</p>
+<pre><code class="language-fsharp">open FSharp.Data.LiteralProviders
+
+// Compute the version: get the latest git tag, and add the branch if it's not master or main.
+
+let [&lt;Literal&gt;] TagVersion = Exec&lt;&quot;git&quot;, &quot;describe --tags&quot;&gt;.Output
+
+let [&lt;Literal&gt;] Branch = Exec&lt;&quot;git&quot;, &quot;branch --show-current&quot;&gt;.Output
+
+// Note: the `const` keyword is an F# language quirk, necessary when nesting type providers.
+let [&lt;Literal&gt;] IsMainBranch =
+    Bool.OR&lt;
+        const(String.EQ&lt;Branch, &quot;master&quot;&gt;.Value),
+        const(String.EQ&lt;Branch, &quot;main&quot;&gt;.Value)
+    &gt;.Value
+
+let [&lt;Literal&gt;] Version =
+    String.IF&lt;IsMainBranch,
+        Then = TagVersion,
+        Else = const(TagVersion + &quot;-&quot; + Branch)
+    &gt;.Value
+</code></pre>
+<p>See <a href="https://github.com/Tarmil/FSharp.Data.LiteralProviders/blob/master/README.md#conditionals">the documentation</a> for all the operators available.</p>
+<h2 id="value-as-int-and-as-bool">Value as int and as bool</h2>
+<p>The providers try to parse string values as integer and as boolean. If any of these succeed, a value suffixed with <code>AsInt</code> or <code>AsBool</code> is provided.</p>
+<pre><code class="language-fsharp">open FSharp.Data.LiteralProviders
+
+let [&lt;Literal&gt;] runNumberAsString = Env&lt;&quot;GITHUB_RUN_NUMBER&quot;&gt;.Value // eg. &quot;42&quot;
+
+let [&lt;Literal&gt;] runNumberAsInt = Env&lt;&quot;GITHUB_RUN_NUMBER&quot;&gt;.ValueAsInt // eg. 42
+</code></pre>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Friday, May 27, 2022</em></small></p>
+                  <p class="are-tags"><a href="../tag/fsharp" class="tag">fsharp</a> <a href="../tag/release" class="tag">release</a> <a href="../tag/library" class="tag">library</a> <a href="../tag/literalproviders" class="tag">literalproviders</a> </p>
+                </article>
+<div id="ws810348342"></div>
+              <p class="are-tags"></p>
             </div>
             <nav class="level article-prev-next">
               <div class="level-left">
                 <div class="level-item">
-                  <a href="../../../../article/2019/12/17/elmish-page-model">← Managing page-specific models in Elmish</a>
+                  <a href="#"></a>
                 </div>
               </div>
               <div class="level-right">
                 <div class="level-item">
-                  <a href="../../../../article/2022/5/27/fsharp-data-literalproviders-1-0">FSharp.Data.LiteralProviders 1.0 is here! →</a>
+                  <a href="#"></a>
                 </div>
               </div>
             </nav>
@@ -187,16 +258,10 @@ JsonSerializer.Serialize(Map [(1, &quot;one&quot;); (2, &quot;two&quot;)], optio
               
               
                 <p class="menu-label">September 2022</p>
-                <ul class="menu-list"><li><a href="../../../../article/2022/9/25/systemtextjson-v1.0">FSharp.SystemTextJson 1.0 released!</a></li></ul>
+                <ul class="menu-list"><li><a href="../article/2022/9/25/systemtextjson-v1.0">FSharp.SystemTextJson 1.0 released!</a></li></ul>
               
                 <p class="menu-label">May 2022</p>
-                <ul class="menu-list"><li><a href="../../../../article/2022/5/27/fsharp-data-literalproviders-1-0">FSharp.Data.LiteralProviders 1.0 is here!</a></li></ul>
-              
-                <p class="menu-label">December 2019</p>
-                <ul class="menu-list"><li><a href="../../../../article/2019/12/17/elmish-page-model">Managing page-specific models in Elmish</a></li></ul>
-              
-                <p class="menu-label">November 2019</p>
-                <ul class="menu-list"><li><a href="../../../../article/2019/11/24/bolero-webwindow">Desktop applications with Bolero and WebWindow</a></li></ul>
+                <ul class="menu-list"><li><a href="../article/2022/5/27/fsharp-data-literalproviders-1-0">FSharp.Data.LiteralProviders 1.0 is here!</a></li></ul>
               
             </aside>
           </div>
@@ -212,11 +277,11 @@ JsonSerializer.Serialize(Map [(1, &quot;one&quot;); (2, &quot;two&quot;)], optio
         </p>
       </div>
     </footer>
-    <script src="../../../../Scripts/WebSharper.Core.JavaScript/Runtime.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/fsharp.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/diff.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/xml.min.js" type="text/javascript" charset="UTF-8"></script><!--[if lte IE 7.0]>
-<script src="../../../../Scripts/WebSharper.Main/Json.min.js" type="text/javascript" charset="UTF-8"></script><![endif]-->
-<script src="../../../../Scripts/WebSharper.Main/WebSharper.Main.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/WebSharper.Collections/WebSharper.Collections.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/WebSharper.Web/WebSharper.Web.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/blog/blog.min.js" type="text/javascript" charset="UTF-8"></script><script type="text/javascript">
+    <script src="../Scripts/WebSharper.Core.JavaScript/Runtime.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/fsharp.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/diff.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/xml.min.js" type="text/javascript" charset="UTF-8"></script><!--[if lte IE 7.0]>
+<script src="../Scripts/WebSharper.Main/Json.min.js" type="text/javascript" charset="UTF-8"></script><![endif]-->
+<script src="../Scripts/WebSharper.Main/WebSharper.Main.min.js" type="text/javascript" charset="UTF-8"></script><script src="../Scripts/WebSharper.Collections/WebSharper.Collections.min.js" type="text/javascript" charset="UTF-8"></script><script src="../Scripts/WebSharper.Web/WebSharper.Web.min.js" type="text/javascript" charset="UTF-8"></script><script src="../Scripts/blog/blog.min.js" type="text/javascript" charset="UTF-8"></script><script type="text/javascript">
 if (typeof IntelliFactory !=='undefined') {
-  IntelliFactory.Runtime.ScriptBasePath = '../../../../Scripts/';
+  IntelliFactory.Runtime.ScriptBasePath = '../Scripts/';
   IntelliFactory.Runtime.Start();
 }
 </script>
