@@ -83,6 +83,9 @@ module Layout =
         let s = ctx.Link(ep)
         if s.EndsWith(".html") then s.[..s.Length-6] else s
 
+    let permalink ctx ep (page: Page.Page) =
+        page.metadata.rootUrl + "/" + (link ctx ep).Trim([|'/';'.'|]) // Quite hacky :/
+
     let menu (ctx: Context<EndPoint>) (articles: seq<KeyValuePair<Page.ArticleUrl, Page.Page>>) =
         let articlesByMonth =
             articles
@@ -111,21 +114,29 @@ module Layout =
                 .Doc()
         | None -> Doc.Empty
 
-    let tagsList (ctx: Context<EndPoint>) (page: Page.Page) =
-        Doc.Concat [
-            for tag in page.metadata.tags do
-                MainTemplate.Tag().Name(tag).Url(link ctx (Tag tag)).Doc()
-        ]
-
-    let tweetButton (ctx: Context<EndPoint>) url (page: Page.Page) =
+    let tweetButton ctx url page =
         let enc x = System.Net.WebUtility.UrlEncode x
-        let urlStr = page.metadata.rootUrl + "/" + (link ctx (Article url)).Trim([|'/';'.'|]) // Quite hacky :/
+        let urlStr = permalink ctx (Article url) page
         let tweetUrl =
             sprintf "https://twitter.com/intent/tweet?url=%s&text=%s&hashtags=%s"
                 urlStr
                 (enc page.metadata.title)
                 (page.metadata.tags |> Seq.map enc |> String.concat ",")
         MainTemplate.TweetButton().Url(tweetUrl).Doc()
+
+    let permalinkButton ctx url page =
+        MainTemplate.PermalinkButton().Url(permalink ctx (Article url) page).Doc()
+
+    let tagsList (ctx: Context<EndPoint>) (page: Page.Page) url =
+        Doc.Concat [
+            for tag in page.metadata.tags do
+                MainTemplate.Tag().Name(tag).Url(link ctx (Tag tag)).Doc()
+            match url with
+            | None -> ()
+            | Some url ->
+                tweetButton ctx url page
+                permalinkButton ctx url page
+        ]
 
     let articleList (ctx: Context<EndPoint>) (articles: seq<KeyValuePair<_, Page.Page>>) =
         [
@@ -134,7 +145,7 @@ module Layout =
                     .Url(link ctx (Article url))
                     .Title(page.metadata.title)
                     .Body([Doc.Verbatim page.html; byline (Some url) page])
-                    .Tags(tagsList ctx page)
+                    .Tags(tagsList ctx page (Some url))
                     .Doc()
         ]
 
@@ -159,12 +170,7 @@ module Layout =
                 Doc.WebControl (new Require<Css>())
                 client <@ Client.Main () @>
             ])
-            .Tags([
-                yield tagsList ctx page
-                match url with
-                | None -> ()
-                | Some url -> yield tweetButton ctx url page
-            ])
+            .Tags(tagsList ctx page url)
             .PrevUrl(prevUrl)
             .PrevTitle(prevTitle)
             .NextUrl(nextUrl)
