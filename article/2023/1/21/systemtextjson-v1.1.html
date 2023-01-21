@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FSharp.SystemTextJson 1.1 released!</title>
+    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws369216583":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
+<link type="text/css" rel="stylesheet" href="/css/all.css"></link>
+<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/atom-one-light.min.css"></link>
+
+  </head>
+  <body>
+    <header class="hero is-medium">
+      <div class="hero-body">
+        <div class="container">
+          <a href="/">
+            <h1 class="title">FSharp.SystemTextJson 1.1 released!</h1>
+            <h2 class="subtitle"></h2>
+          </a>
+        </div>
+      </div>
+    </header>
+    <section class="section">
+      <div class="container">
+        <div class="columns">
+          <div class="column is-two-thirds">
+            <div class="content">
+              <p>I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.1!</p>
+<p>FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard <a href="https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0">System.Text.Json</a>.</p>
+<p>Here is a summary of the new features in v1.0.</p>
+<h2 id="fluent-configuration">Fluent configuration</h2>
+<p>The library now comes with a new syntax for configuration.
+Instead of a constructor with a mix of optional arguments and enum flags, you can now use a more consistent fluent syntax.</p>
+<ul>
+<li>The baseline options are declared using one of these static methods on the <code>JsonFSharpOptions</code> type: <code>Default()</code>, <code>NewtonsoftLike()</code>, <code>ThothLike()</code> or <code>FSharpLuLike()</code>.</li>
+<li>Then, fluent instance methods set various options and return a new instance of <code>JsonFSharpOptions</code>.</li>
+<li>Finally, a converter with the given options can be either added to an existing <code>JsonSerializerOptions</code> with the method <code>AddToJsonSerializerOptions()</code>, or to a new one with <code>ToJsonSerializerOptions()</code>.</li>
+</ul>
+<p>For example:</p>
+<pre><code class="language-fsharp">let options =
+    JsonFSharpOptions.Default()
+        .WithUnionInternalTag()
+        .WithUnionNamedFields()
+        .WithUnionTagName(&quot;type&quot;)
+        .ToJsonSerializerOptions()
+
+type SomeUnion =
+    | SomeUnionCase of x: int * y: string
+
+JsonSerializer.Serialize(SomeUnionCase (1, &quot;test&quot;), options)
+// --&gt; {&quot;type&quot;:&quot;SomeUnionCase&quot;,&quot;x&quot;:1,&quot;y&quot;:&quot;test&quot;}
+</code></pre>
+<p>Note that in the future, newly added options will be available via the fluent configuration, but they may not always be added to the constructor syntax; especially because this can break binary compatibility (see <a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/132">this issue</a>).</p>
+<h2 id="skippable-option-fields">Skippable option fields</h2>
+<p>In version 1.0, the default behavior for fields of type <code>option</code> and <code>voption</code> changed: they are no longer serialized as a present or missing field, and instead as a null field.</p>
+<p>While the pre-1.0 behavior can be recovered by using the <code>JsonSerializerOptions</code> property <code>DefaultIgnoreCondition</code>, this has other side-effects and multiple users have asked for a cleaner way to use options for missing fields.</p>
+<p>This is now possible with the option <code>SkippableOptionFields</code>. This is the first option that is only available via fluent configuration, and not as a <code>JsonFSharpConverter</code> constructor argument.</p>
+<pre><code class="language-fsharp">let options =
+    JsonFSharpOptions.Default()
+        .WithSkippableOptionFields()
+        .ToJsonSerializerOptions()
+
+JsonSerializer.Serialize({| x = Some 42; y = None |}, options)
+// --&gt; {&quot;x&quot;:42}
+</code></pre>
+<p>Happy coding!</p>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Saturday, January 21, 2023</em></small></p><div id="ws369216583"></div>
+              <p class="are-tags"><a href="../../../../tag/fsharp" class="tag">fsharp</a> <a href="../../../../tag/release" class="tag">release</a> <a href="../../../../tag/library" class="tag">library</a> <a href="../../../../tag/fsharp-systemtextjson" class="tag">fsharp-systemtextjson</a> <a class="tag is-info" href="https://twitter.com/intent/tweet?url=https://tarmil.fr/article/2023/1/21/systemtextjson-v1.1&amp;text=FSharp.SystemTextJson+1.1+released!&amp;hashtags=fsharp,release,library,fsharp-systemtextjson">Tweet</a> <a class="tag is-link" href="https://tarmil.fr/article/2023/1/21/systemtextjson-v1.1">Permalink</a> </p>
+            </div>
+            <nav class="level article-prev-next">
+              <div class="level-left">
+                <div class="level-item">
+                  <a href="../../../../article/2019/12/17/elmish-page-model">← Managing page-specific models in Elmish</a>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <a href="../../../../article/2022/5/27/fsharp-data-literalproviders-1-0">FSharp.Data.LiteralProviders 1.0 is here! →</a>
+                </div>
+              </div>
+            </nav>
+          </div>
+          <div class="column is-one-third">
+            <aside class="menu">
+              
+              
+                <p class="menu-label">January 2023</p>
+                <ul class="menu-list"><li><a href="../../../../article/2023/1/21/systemtextjson-v1.1">FSharp.SystemTextJson 1.1 released!</a></li></ul>
+              
+                <p class="menu-label">September 2022</p>
+                <ul class="menu-list"><li><a href="../../../../article/2022/9/25/systemtextjson-v1.0">FSharp.SystemTextJson 1.0 released!</a></li></ul>
+              
+                <p class="menu-label">May 2022</p>
+                <ul class="menu-list"><li><a href="../../../../article/2022/5/27/fsharp-data-literalproviders-1-0">FSharp.Data.LiteralProviders 1.0 is here!</a></li></ul>
+              
+                <p class="menu-label">December 2019</p>
+                <ul class="menu-list"><li><a href="../../../../article/2019/12/17/elmish-page-model">Managing page-specific models in Elmish</a></li></ul>
+              
+                <p class="menu-label">November 2019</p>
+                <ul class="menu-list"><li><a href="../../../../article/2019/11/24/bolero-webwindow">Desktop applications with Bolero and WebWindow</a></li></ul>
+              
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer">
+      <div class="content has-text-centered">
+        <p>
+          &copy; 2019 Loïc Denuzière.
+          Website content licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+          Source code <a href="https://github.com/tarmil/tarmil.github.io">on GitHub</a> and licensed under <a href="https://opensource.org/licenses/mit-license.php">MIT</a>.
+        </p>
+      </div>
+    </footer>
+    <script src="../../../../Scripts/WebSharper.Core.JavaScript/Runtime.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/fsharp.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/diff.min.js" type="text/javascript" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/languages/xml.min.js" type="text/javascript" charset="UTF-8"></script><!--[if lte IE 7.0]>
+<script src="../../../../Scripts/WebSharper.Main/Json.min.js" type="text/javascript" charset="UTF-8"></script><![endif]-->
+<script src="../../../../Scripts/WebSharper.Main/WebSharper.Main.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/WebSharper.Collections/WebSharper.Collections.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/WebSharper.Web/WebSharper.Web.min.js" type="text/javascript" charset="UTF-8"></script><script src="../../../../Scripts/blog/blog.min.js" type="text/javascript" charset="UTF-8"></script><script type="text/javascript">
+if (typeof IntelliFactory !=='undefined') {
+  IntelliFactory.Runtime.ScriptBasePath = '../../../../Scripts/';
+  IntelliFactory.Runtime.Start();
+}
+</script>
+
+  </body>
+</html>

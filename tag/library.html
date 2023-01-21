@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Une pipe |&gt; Ceci n&#39;est pas</title>
-    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws2098438098":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
+    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws861029508":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
 <link type="text/css" rel="stylesheet" href="/css/all.css"></link>
 <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/atom-one-light.min.css"></link>
 
@@ -31,6 +31,49 @@ I'm a French developer who's quite passionate about functional programming, and 
 Recently I've been focusing more on <a href="https://fsbolero.io">Bolero</a>, a library that runs F# applications in WebAssembly using Blazor, and other personal projects.</p>
 <p>Follow me on <a href="https://twitter.com/tarmil_">Twitter</a>, <a href="https://mastodon.tarmil.fr/@tarmil" rel="me">Mastodon</a> and find me on <a href="https://github.com/tarmil">GitHub</a>.</p>
 <article class="section">
+                  <h1><a href="../article/2023/1/21/systemtextjson-v1.1">FSharp.SystemTextJson 1.1 released!</a></h1>
+                  <p>I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.1!</p>
+<p>FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard <a href="https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0">System.Text.Json</a>.</p>
+<p>Here is a summary of the new features in v1.0.</p>
+<h2 id="fluent-configuration">Fluent configuration</h2>
+<p>The library now comes with a new syntax for configuration.
+Instead of a constructor with a mix of optional arguments and enum flags, you can now use a more consistent fluent syntax.</p>
+<ul>
+<li>The baseline options are declared using one of these static methods on the <code>JsonFSharpOptions</code> type: <code>Default()</code>, <code>NewtonsoftLike()</code>, <code>ThothLike()</code> or <code>FSharpLuLike()</code>.</li>
+<li>Then, fluent instance methods set various options and return a new instance of <code>JsonFSharpOptions</code>.</li>
+<li>Finally, a converter with the given options can be either added to an existing <code>JsonSerializerOptions</code> with the method <code>AddToJsonSerializerOptions()</code>, or to a new one with <code>ToJsonSerializerOptions()</code>.</li>
+</ul>
+<p>For example:</p>
+<pre><code class="language-fsharp">let options =
+    JsonFSharpOptions.Default()
+        .WithUnionInternalTag()
+        .WithUnionNamedFields()
+        .WithUnionTagName(&quot;type&quot;)
+        .ToJsonSerializerOptions()
+
+type SomeUnion =
+    | SomeUnionCase of x: int * y: string
+
+JsonSerializer.Serialize(SomeUnionCase (1, &quot;test&quot;), options)
+// --&gt; {&quot;type&quot;:&quot;SomeUnionCase&quot;,&quot;x&quot;:1,&quot;y&quot;:&quot;test&quot;}
+</code></pre>
+<p>Note that in the future, newly added options will be available via the fluent configuration, but they may not always be added to the constructor syntax; especially because this can break binary compatibility (see <a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/132">this issue</a>).</p>
+<h2 id="skippable-option-fields">Skippable option fields</h2>
+<p>In version 1.0, the default behavior for fields of type <code>option</code> and <code>voption</code> changed: they are no longer serialized as a present or missing field, and instead as a null field.</p>
+<p>While the pre-1.0 behavior can be recovered by using the <code>JsonSerializerOptions</code> property <code>DefaultIgnoreCondition</code>, this has other side-effects and multiple users have asked for a cleaner way to use options for missing fields.</p>
+<p>This is now possible with the option <code>SkippableOptionFields</code>. This is the first option that is only available via fluent configuration, and not as a <code>JsonFSharpConverter</code> constructor argument.</p>
+<pre><code class="language-fsharp">let options =
+    JsonFSharpOptions.Default()
+        .WithSkippableOptionFields()
+        .ToJsonSerializerOptions()
+
+JsonSerializer.Serialize({| x = Some 42; y = None |}, options)
+// --&gt; {&quot;x&quot;:42}
+</code></pre>
+<p>Happy coding!</p>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Saturday, January 21, 2023</em></small></p>
+                  <p class="are-tags"><a href="../tag/fsharp" class="tag">fsharp</a> <a href="../tag/release" class="tag">release</a> <a href="../tag/library" class="tag">library</a> <a href="../tag/fsharp-systemtextjson" class="tag">fsharp-systemtextjson</a> <a class="tag is-info" href="https://twitter.com/intent/tweet?url=https://tarmil.fr/article/2023/1/21/systemtextjson-v1.1&amp;text=FSharp.SystemTextJson+1.1+released!&amp;hashtags=fsharp,release,library,fsharp-systemtextjson">Tweet</a> <a class="tag is-link" href="https://tarmil.fr/article/2023/1/21/systemtextjson-v1.1">Permalink</a> </p>
+                </article><article class="section">
                   <h1><a href="../article/2022/9/25/systemtextjson-v1.0">FSharp.SystemTextJson 1.0 released!</a></h1>
                   <p>More than three years after the first release, I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.0!</p>
 <p>FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard <a href="https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0">System.Text.Json</a>.</p>
@@ -237,7 +280,7 @@ let [&lt;Literal&gt;] runNumberAsInt = Env&lt;&quot;GITHUB_RUN_NUMBER&quot;&gt;.
 <p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Friday, May 27, 2022</em></small></p>
                   <p class="are-tags"><a href="../tag/fsharp" class="tag">fsharp</a> <a href="../tag/release" class="tag">release</a> <a href="../tag/library" class="tag">library</a> <a href="../tag/literalproviders" class="tag">literalproviders</a> <a class="tag is-info" href="https://twitter.com/intent/tweet?url=https://tarmil.fr/article/2022/5/27/fsharp-data-literalproviders-1-0&amp;text=FSharp.Data.LiteralProviders+1.0+is+here!&amp;hashtags=fsharp,release,library,literalproviders">Tweet</a> <a class="tag is-link" href="https://tarmil.fr/article/2022/5/27/fsharp-data-literalproviders-1-0">Permalink</a> </p>
                 </article>
-<div id="ws2098438098"></div>
+<div id="ws861029508"></div>
               <p class="are-tags"></p>
             </div>
             <nav class="level article-prev-next">
@@ -256,6 +299,9 @@ let [&lt;Literal&gt;] runNumberAsInt = Env&lt;&quot;GITHUB_RUN_NUMBER&quot;&gt;.
           <div class="column is-one-third">
             <aside class="menu">
               
+              
+                <p class="menu-label">January 2023</p>
+                <ul class="menu-list"><li><a href="../article/2023/1/21/systemtextjson-v1.1">FSharp.SystemTextJson 1.1 released!</a></li></ul>
               
                 <p class="menu-label">September 2022</p>
                 <ul class="menu-list"><li><a href="../article/2022/9/25/systemtextjson-v1.0">FSharp.SystemTextJson 1.0 released!</a></li></ul>
