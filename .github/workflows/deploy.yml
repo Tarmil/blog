@@ -20,4 +20,4 @@ jobs:
           ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           PUBLISH_BRANCH: master
           PUBLISH_DIR: bin/html
-        if: github.ref == 'refs/heads/source'
+        if: github.ref == 'refs/heads/source' && github.repository == 'Tarmil/blog'
