@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Une pipe |&gt; Ceci n&#39;est pas</title>
-    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws1190639763":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
+    <meta id='websharper-data' name='websharper-data' content='{"$TYPES":[["WebSharper","Web","FSharpInlineControl"]],"$DATA":{"$V":{"ws1497334526":{"$T":0,"$V":{"args":[],"funcName":["Blog","Client","Main"]}}}}}' />
 <link type="text/css" rel="stylesheet" href="/css/all.css"></link>
 <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/atom-one-light.min.css"></link>
 
@@ -31,10 +31,79 @@ I'm a French developer who's quite passionate about functional programming, and 
 Recently I've been focusing more on <a href="https://fsbolero.io">Bolero</a>, a library that runs F# applications in WebAssembly using Blazor, and other personal projects.</p>
 <p>Follow me on <a href="https://twitter.com/tarmil_">Twitter</a>, <a href="https://mastodon.tarmil.fr/@tarmil" rel="me">Mastodon</a> and find me on <a href="https://github.com/tarmil">GitHub</a>.</p>
 <article class="section">
+                  <h1><a href="../article/2023/8/14/systemtextjson-1.2">FSharp.SystemTextJson 1.2 released!</a></h1>
+                  <p>I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.2!</p>
+<p>FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard <a href="https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0">System.Text.Json</a>.</p>
+<p>Here is a summary of the new features in v1.2.</p>
+<h2 id="skippable-option-fields-154">Skippable Option fields (<a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/154">#154</a>)</h2>
+<p>Version 1.1 introduced the method <code>JsonFSharpOptions.WithSkippableOptionFields(?bool)</code> that, when set to true, causes <code>None</code> and <code>ValueNone</code> to always be skipped when serialized as the value of a record or union field.
+However, even with this option left as false, <code>None</code> and <code>ValueNone</code> were still skipped if the <code>JsonSerializerOptions</code> have <code>DefaultIgnoreCondition</code> set to <code>WhenWritingNull</code>.</p>
+<p>In version 1.2, a new overload of <code>JsonFSharpOptions.WithSkippableOptionFields</code> takes an enum as argument that brings more possibilities.</p>
+<ul>
+<li><p><code>SkippableOptionFields.Always</code> is equivalent to <code>true</code>: record and union fields equal to <code>None</code> and <code>ValueNone</code> are always skipped.</p>
+</li>
+<li><p><code>SkippableOptionFields.FromJsonSerializerOptions</code> is equivalent to <code>false</code>: record and union fields equal to <code>None</code> and <code>ValueNone</code> are only skipped if <code>JsonSerializerOptions</code> have <code>DefaultIgnoreCondition</code> set to <code>WhenWritingNull</code>.
+Otherwise, they are serialized as JSON <code>null</code>.</p>
+</li>
+<li><p><code>SkippableOptionFields.Never</code> is new: <code>None</code> and <code>ValueNone</code> are never skipped, and always serialized as JSON <code>null</code>.</p>
+</li>
+</ul>
+<h2 id="handling-of-dictionary-and-map-keys-161-and-162">Handling of dictionary and map keys (<a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/161">#161</a> and <a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/162">#162</a>)</h2>
+<p>In version 1.2, FSharp.SystemTextJson now makes use of System.Text.Json's <code>ReadAsPropertyName</code> and <code>WriteAsPropertyName</code> features.
+This manifests in two ways:</p>
+<ul>
+<li><p>Single-case unions can now be used as keys in a standard <code>Dictionary</code> (and related types).<br />
+<strong>NOTE</strong>: This requires System.Text.Json 8.0.</p>
+<pre><code class="language-fsharp">let options = JsonFSharpOptions().ToJsonSerializerOptions()
+
+type CountryCode = CountryCode of string
+
+let countries = dict [
+    CountryCode &quot;us&quot;, &quot;United States&quot;
+    CountryCode &quot;fr&quot;, &quot;France&quot;
+    CountryCode &quot;gb&quot;, &quot;United Kingdom&quot;
+]
+
+JsonSerializer.Serialize(countries, options)
+// --&gt; {&quot;us&quot;:&quot;United States&quot;,&quot;fr&quot;:&quot;France&quot;,&quot;gb&quot;:&quot;United Kingdom&quot;}
+</code></pre>
+</li>
+<li><p>The format for maps can now be customized using <code>JsonFSharpOptions.WithMapFormat(MapFormat)</code>.</p>
+<ul>
+<li><p><code>MapFormat.Object</code> always serializes maps as objects.
+The key type must be supported as key for dictionaries.<br />
+<strong>NOTE</strong>: This requires System.Text.Json 8.0.</p>
+</li>
+<li><p><code>MapFormat.ArrayOfPairs</code> always serializes maps as JSON arrays whose items are <code>[key,value]</code> pairs.</p>
+</li>
+<li><p><code>MapFormat.ObjectOrArrayOfPairs</code> is the default, and the same behavior as v1.1.
+Maps whose keys are string or single-case unions wrapping string are serialized as JSON objects, and other maps are serialized as JSON arrays whose items are <code>[key,value]</code> pairs.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="other-improvements">Other improvements</h2>
+<ul>
+<li><p><a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/158">#158</a>: Throw an exception when trying to deserialize <code>null</code> into a record or union in any context, rather than only when they are in fields of records and unions.</p>
+</li>
+<li><p><a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/163">#163</a>: Add <code>StructuralComparison</code> to the type <code>Skippable&lt;_&gt;</code>. This allows using it with types that are themselves marked with <code>StructuralComparison</code>.</p>
+</li>
+</ul>
+<h2 id="bug-fixes">Bug fixes</h2>
+<ul>
+<li><p><a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/160">#160</a>: Fix <code>WithSkippableOptionFields(false)</code> not working for <code>voption</code>.</p>
+</li>
+<li><p><a href="https://github.com/Tarmil/FSharp.SystemTextJson/issues/164">#164</a>: When deserializing a record with <code>JsonIgnoreCondition.WhenWritingNull</code>, when a non-nullable field is missing, throw a proper <code>JsonException</code> that includes the name of the field, rather than a <code>NullReferenceException</code>.</p>
+</li>
+</ul>
+<p>Happy coding!</p>
+<p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Monday, August 14, 2023</em></small></p>
+                  <p class="are-tags"><a href="../tag/fsharp" class="tag">fsharp</a> <a href="../tag/release" class="tag">release</a> <a href="../tag/library" class="tag">library</a> <a href="../tag/fsharp-systemtextjson" class="tag">fsharp-systemtextjson</a> <a class="tag is-info" href="https://twitter.com/intent/tweet?url=https://tarmil.fr/article/2023/8/14/systemtextjson-1.2&amp;text=FSharp.SystemTextJson+1.2+released!&amp;hashtags=fsharp,release,library,fsharp-systemtextjson">Tweet</a> <a class="tag is-link" href="https://tarmil.fr/article/2023/8/14/systemtextjson-1.2">Permalink</a> </p>
+                </article><article class="section">
                   <h1><a href="../article/2023/1/21/systemtextjson-v1.1">FSharp.SystemTextJson 1.1 released!</a></h1>
                   <p>I am happy to announce <a href="https://github.com/tarmil/fsharp.systemtextjson">FSharp.SystemTextJson</a> version 1.1!</p>
 <p>FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard <a href="https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0">System.Text.Json</a>.</p>
-<p>Here is a summary of the new features in v1.0.</p>
+<p>Here is a summary of the new features in v1.1.</p>
 <h2 id="fluent-configuration">Fluent configuration</h2>
 <p>The library now comes with a new syntax for configuration.
 Instead of a constructor with a mix of optional arguments and enum flags, you can now use a more consistent fluent syntax.</p>
@@ -280,7 +349,7 @@ let [&lt;Literal&gt;] runNumberAsInt = Env&lt;&quot;GITHUB_RUN_NUMBER&quot;&gt;.
 <p><small><em>By Lo&#239;c &quot;Tarmil&quot; Denuzi&#232;re on Friday, May 27, 2022</em></small></p>
                   <p class="are-tags"><a href="../tag/fsharp" class="tag">fsharp</a> <a href="../tag/release" class="tag">release</a> <a href="../tag/library" class="tag">library</a> <a href="../tag/literalproviders" class="tag">literalproviders</a> <a class="tag is-info" href="https://twitter.com/intent/tweet?url=https://tarmil.fr/article/2022/5/27/fsharp-data-literalproviders-1-0&amp;text=FSharp.Data.LiteralProviders+1.0+is+here!&amp;hashtags=fsharp,release,library,literalproviders">Tweet</a> <a class="tag is-link" href="https://tarmil.fr/article/2022/5/27/fsharp-data-literalproviders-1-0">Permalink</a> </p>
                 </article>
-<div id="ws1190639763"></div>
+<div id="ws1497334526"></div>
               <p class="are-tags"></p>
             </div>
             <nav class="level article-prev-next">
@@ -299,6 +368,9 @@ let [&lt;Literal&gt;] runNumberAsInt = Env&lt;&quot;GITHUB_RUN_NUMBER&quot;&gt;.
           <div class="column is-one-third">
             <aside class="menu">
               
+              
+                <p class="menu-label">August 2023</p>
+                <ul class="menu-list"><li><a href="../article/2023/8/14/systemtextjson-1.2">FSharp.SystemTextJson 1.2 released!</a></li></ul>
               
                 <p class="menu-label">January 2023</p>
                 <ul class="menu-list"><li><a href="../article/2023/1/21/systemtextjson-v1.1">FSharp.SystemTextJson 1.1 released!</a></li></ul>
