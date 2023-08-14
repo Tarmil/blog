@@ -52,7 +52,33 @@ This manifests in two ways:
         The key type must be supported as key for dictionaries.  
         **NOTE**: This requires System.Text.Json 8.0.
 
+        ```fsharp
+        let options = JsonFSharpOptions().WithMapFormat(MapFormat.Object).ToJsonSerializerOptions()
+
+        let countries = Map [
+            Guid.NewGuid(), "United States"
+            Guid.NewGuid(), "France"
+            Guid.NewGuid(), "United Kingdom"
+        ]
+
+        JsonSerializer.Serialize(countries, options)
+        // --> {"44e2a549-66c6-4515-970a-a1e85ce42624":"United States", ...
+        ```
+
     * `MapFormat.ArrayOfPairs` always serializes maps as JSON arrays whose items are `[key,value]` pairs.
+
+        ```fsharp
+        let options = JsonFSharpOptions().WithMapFormat(MapFormat.Object).ToJsonSerializerOptions()
+
+        let countries = Map [
+            "us", "United States"
+            "fr", "France"
+            "uk", "United Kingdom"
+        ]
+
+        JsonSerializer.Serialize(countries, options)
+        // --> [["us","United States"],["fr","France"],["uk","United Kingdom"]]
+        ```
 
     * `MapFormat.ObjectOrArrayOfPairs` is the default, and the same behavior as v1.1.
         Maps whose keys are string or single-case unions wrapping string are serialized as JSON objects, and other maps are serialized as JSON arrays whose items are `[key,value]` pairs.
