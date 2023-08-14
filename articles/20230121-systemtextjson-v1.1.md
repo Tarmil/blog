@@ -7,7 +7,7 @@ I am happy to announce [FSharp.SystemTextJson](https://github.com/tarmil/fsharp.
 
 FSharp.SystemTextJson is a library that provides support for F# types in .NET's standard [System.Text.Json](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/how-to?pivots=dotnet-6-0).
 
-Here is a summary of the new features in v1.0.
+Here is a summary of the new features in v1.1.
 
 ## Fluent configuration
 
