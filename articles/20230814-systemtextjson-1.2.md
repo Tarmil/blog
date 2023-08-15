@@ -68,7 +68,7 @@ This manifests in two ways:
     * `MapFormat.ArrayOfPairs` always serializes maps as JSON arrays whose items are `[key,value]` pairs.
 
         ```fsharp
-        let options = JsonFSharpOptions().WithMapFormat(MapFormat.Object).ToJsonSerializerOptions()
+        let options = JsonFSharpOptions().WithMapFormat(MapFormat.ArrayOfPairs).ToJsonSerializerOptions()
 
         let countries = Map [
             "us", "United States"
