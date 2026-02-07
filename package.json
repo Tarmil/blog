@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "node-sass --include-path node_modules --output css --output-style compressed scss"
+    "build": "sass --load-path node_modules --style compressed scss/all.scss css/all.css"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "bulma": "^0.7.5",
-    "node-sass": "^9.0.0"
+    "sass": "^1.97.3"
   }
 }
