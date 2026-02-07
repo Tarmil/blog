@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '5.0.408'
+          dotnet-version: '6.0.428'
       - name: Build the application
         run: dotnet build -c release
       - name: Publish to github pages

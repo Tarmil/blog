@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -37,10 +37,10 @@
     <PackageReference Include="Markdig" Version="0.17.1" />
     <PackageReference Include="SharpYaml" Version="1.6.5" />
     <!-- <ProjectReference Include="../sharpyaml/SharpYaml/SharpYaml.csproj" /> -->
-    <PackageReference Include="WebSharper" Version="5.0.0.120" />
-    <PackageReference Include="WebSharper.FSharp" Version="5.0.0.120" />
-    <PackageReference Include="WebSharper.UI" Version="5.0.0.120" />
-    <PackageReference Include="WebSharper.HighlightJs" Version="5.0.0.120" />
+    <PackageReference Include="WebSharper" Version="6.1.13.566" />
+    <PackageReference Include="WebSharper.FSharp" Version="6.1.13.566" />
+    <PackageReference Include="WebSharper.UI" Version="6.1.5.566" />
+    <PackageReference Include="WebSharper.HighlightJs" Version="6.1.0.566" />
   </ItemGroup>
 
   <Target Name="CompileScss" BeforeTargets="BeforeBuild">
