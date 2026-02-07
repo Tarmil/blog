@@ -7,7 +7,6 @@ open WebSharper
 open WebSharper.Sitelets
 open WebSharper.UI
 open WebSharper.UI.Server
-open WebSharper.Web
 
 type EndPoint =
     | [<EndPoint "GET /">] Page of string
@@ -71,7 +70,7 @@ module Content =
 
 module Layout =
     open System.Globalization
-    open WebSharper.UI.Html
+    open type WebSharper.UI.ClientServer
 
     type MainTemplate = Templating.Template<const(Paths.layout + "/main.html")>
 
@@ -167,8 +166,7 @@ module Layout =
                     .With("Articles", articleList ctx articles)
                     .Doc()
                 byline url page
-                Doc.WebControl (new Require<Css>())
-                client <@ Client.Main () @>
+                client (Client.Main ())
             ])
             .Tags(tagsList ctx page url)
             .PrevUrl(prevUrl)

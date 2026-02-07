@@ -4,9 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <WebSharperProject>Html</WebSharperProject>
     <WebSharperHtmlDirectory>$(MSBuildThisFileDirectory)bin/html</WebSharperHtmlDirectory>
+    <WebSharperStandalone>true</WebSharperStandalone>
+    <WebSharperTypeScriptOutput>false</WebSharperTypeScriptOutput>
     <StartAction>Program</StartAction>
     <StartProgram>dotnet</StartProgram>
-    <StartArguments>serve -d:"$(WebSharperHtmlDirectory)" --default-extensions:html</StartArguments>
+    <StartArguments>serve -d:"$(WebSharperHtmlDirectory)" --default-extensions:html --port:12345</StartArguments>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +27,7 @@
     <None Include="extra.files" />
     <None Include="wsconfig.json" />
     <None Include="package.json" />
+    <None Include="esbuild.config.mjs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,15 +40,20 @@
     <PackageReference Include="Markdig" Version="0.17.1" />
     <PackageReference Include="SharpYaml" Version="1.6.5" />
     <!-- <ProjectReference Include="../sharpyaml/SharpYaml/SharpYaml.csproj" /> -->
-    <PackageReference Include="WebSharper" Version="6.1.13.566" />
-    <PackageReference Include="WebSharper.FSharp" Version="6.1.13.566" />
-    <PackageReference Include="WebSharper.UI" Version="6.1.5.566" />
-    <PackageReference Include="WebSharper.HighlightJs" Version="6.1.0.566" />
+    <PackageReference Include="WebSharper" Version="10.0.0.652" />
+    <PackageReference Include="WebSharper.FSharp" Version="10.0.0.652" />
+    <PackageReference Include="WebSharper.UI" Version="10.0.0.652" />
+    <PackageReference Include="WebSharper.HighlightJs" Version="10.0.0.651" />
   </ItemGroup>
 
   <Target Name="CompileScss" BeforeTargets="BeforeBuild">
     <Exec Command="npm install" Condition="!Exists('$(MSBuildThisFileDirectory)node_modules')" />
     <Exec Command="npm run build" />
+  </Target>
+
+  <Target Name="ESBuildBundle" AfterTargets="WebSharperCompile">
+    <Exec Command="npm install" />
+    <Exec Command="node ./esbuild.config.mjs" />
   </Target>
 
 </Project>

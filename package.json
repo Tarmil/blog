@@ -10,6 +10,10 @@
   "license": "ISC",
   "devDependencies": {
     "bulma": "^0.7.5",
+    "esbuild": "^0.27.3",
     "sass": "^1.97.3"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1"
   }
 }
